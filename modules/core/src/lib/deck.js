@@ -25,7 +25,8 @@ import EffectManager from '../experimental/lib/effect-manager';
 import Effect from '../experimental/lib/effect';
 import log from '../utils/log';
 
-import {GL, AnimationLoop, createGLContext, setParameters} from 'luma.gl';
+import GL from 'luma.gl/constants';
+import {AnimationLoop, createGLContext, setParameters} from 'luma.gl';
 import {Stats} from 'probe.gl';
 import {EventManager} from 'mjolnir.js';
 
@@ -250,7 +251,7 @@ export default class Deck {
 
   pickObject({x, y, radius = 0, layerIds = null}) {
     this.stats.timeStart('deck.pickObject');
-    const selectedInfos = this.layerManager.pickObject({
+    const selectedInfos = this.pickObject({
       x,
       y,
       radius,
@@ -265,7 +266,7 @@ export default class Deck {
 
   pickMultipleObjects({x, y, radius = 0, layerIds = null, depth = 10}) {
     this.stats.timeStart('deck.pickMultipleObjects');
-    const selectedInfos = this.layerManager.pickObject({
+    const selectedInfos = this.pickObject({
       x,
       y,
       radius,
@@ -280,7 +281,7 @@ export default class Deck {
 
   pickObjects({x, y, width = 1, height = 1, layerIds = null}) {
     this.stats.timeStart('deck.pickObjects');
-    const infos = this.layerManager.pickObjects({
+    const infos = this.pickObjects({
       x,
       y,
       width,
@@ -418,7 +419,7 @@ export default class Deck {
   _pickAndCallback(options) {
     const pos = options.event.offsetCenter;
     const radius = this.props.pickingRadius;
-    const selectedInfos = this.layerManager.pickObject({
+    const selectedInfos = this.pickObject({
       x: pos.x,
       y: pos.y,
       viewports: this.getViewports(),
@@ -557,7 +558,7 @@ export default class Deck {
   }
 
   _onPointerLeave(event) {
-    this.layerManager.pickObject({
+    this.pickObject({
       x: -1,
       y: -1,
       viewports: this.getViewports(),

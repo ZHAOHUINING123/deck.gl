@@ -19,7 +19,7 @@
 // THE SOFTWARE.
 
 import {Layer, log} from '@deck.gl/core';
-import {GL, Model, CylinderGeometry, fp64} from 'luma.gl';
+import {Model, CylinderGeometry, fp64} from 'luma.gl';
 const {fp64LowPart} = fp64;
 
 import vs from './hexagon-cell-layer-vertex.glsl';

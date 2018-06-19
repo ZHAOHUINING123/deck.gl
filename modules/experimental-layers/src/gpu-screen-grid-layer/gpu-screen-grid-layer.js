@@ -22,7 +22,8 @@ import {Layer, experimental} from '@deck.gl/core';
 import GPUGridAggregator from '../utils/gpu-grid-aggregator';
 const {defaultColorRange} = experimental;
 
-import {GL, Model, Geometry, Buffer} from 'luma.gl';
+import GL from 'luma.gl/constants';
+import {Model, Geometry, Buffer} from 'luma.gl';
 
 import vs from './gpu-screen-grid-layer-vertex.glsl';
 import fs from './gpu-screen-grid-layer-fragment.glsl';

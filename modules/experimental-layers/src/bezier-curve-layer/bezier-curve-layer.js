@@ -19,7 +19,7 @@
 // THE SOFTWARE.
 
 import {Layer} from '@deck.gl/core';
-import {GL, Model, Geometry, fp64} from 'luma.gl';
+import {Model, Geometry, fp64} from 'luma.gl';
 const {fp64LowPart} = fp64;
 
 import vs from './bezier-curve-layer-vertex.glsl';
