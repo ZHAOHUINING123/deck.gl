@@ -20,6 +20,12 @@
 
 import {CompositeLayer} from '@deck.gl/core';
 import {PathLayer} from '@deck.gl/layers';
+import GPUGridAggregator from '@deck.gl/experimental-layers/utils/gpu-grid-aggregator';
+
+// _TODO_ : move out of grid-layer as common grid-aggregation util method.
+import {pointToDensityGridData} from '../gpu-grid-layer/gpu-grid-utils';
+import {generateContours} from './contour-utils';
+
 const DEFAULT_COLOR = [0, 0, 0, 255];
 
 const defaultProps = {
@@ -38,8 +44,14 @@ const defaultProps = {
 
 export default class ContourLayer extends CompositeLayer {
   initializeState() {
+    const {gl} = this.context;
+    const options = {
+      id: `${this.id}-gpu-aggregator`,
+      shaderCache: this.context.shaderCache
+    };
     this.state = {
-      contourData: []
+      contourData: [],
+      gridAggregator: new GPUGridAggregator(gl, options)
     };
   }
 
@@ -62,8 +74,15 @@ export default class ContourLayer extends CompositeLayer {
 
   updateState({oldProps, props, changeFlags}) {
     const aggregateData = oldProps.cellSize !== props.cellSize;
+    let generateContours = false;
     if (changeFlags.dataChanged || aggregateData) {
       this._aggregateData();
+      generateContours = true;
+    }
+    // _TODO_ add trigger for threshold and thresholdColor and set it only when the are changed.
+    generateContours = true;
+    if (generateContours) {
+      this._generateContours();
     }
   }
 
@@ -75,16 +94,41 @@ export default class ContourLayer extends CompositeLayer {
 
   // Private
   _aggregateData() {
-    // Dummy contour data, replace with actual
-    const positionOrigin = [-122.42694203247012, 37.751537058389985];
-    const contourData = [
+    const {data, cellSize, getPosition, gpuAggregation} = this.props;
+    const {countsBuffer, maxCountBuffer, gridSize, gridOrigin, gridOffset} = pointToDensityGridData(
       {
-        path: [
-          [positionOrigin[0] - 0.005, positionOrigin[1] + 0.005],
-          [positionOrigin[0] - 0.005, positionOrigin[1] - 0.005]
-        ]
+        data,
+        cellSizeMeters: cellSize,
+        getPosition,
+        gpuAggregation,
+        gpuGridAggregator: this.state.gridAggregator
       }
-    ];
+    );
+
+    this.setState({countsBuffer, maxCountBuffer, gridSize, gridOrigin, gridOffset});
+  }
+
+  _generateContours() {
+    // Dummy contour data, replace with actual
+    // const positionOrigin = [-122.42694203247012, 37.751537058389985];
+    // const contourData = [
+    //   {
+    //     path: [
+    //       [positionOrigin[0] - 0.005, positionOrigin[1] + 0.005],
+    //       [positionOrigin[0] - 0.005, positionOrigin[1] - 0.005]
+    //     ]
+    //   }
+    // ];
+    const {countsBuffer, gridSize, gridOrigin, gridOffset} = this.state;
+    const contourData = generateContours({
+      thresholds: [10],
+      colors: [[255, 0, 0]],
+      countsBuffer,
+      gridSize,
+      gridOrigin,
+      cellSize: gridOffset
+    });
+
     this.setState({contourData});
   }
 }
