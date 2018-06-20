@@ -27,22 +27,19 @@ import {pointToDensityGridData} from '../gpu-grid-layer/gpu-grid-utils';
 import {generateContours} from './contour-utils';
 
 const DEFAULT_COLOR = [255, 0, 255];
-
-const THRESHOLDS = [1, 10, 20];
-const COLORS = [[255, 0, 0], [0, 255, 0], [0, 0, 255]];
+const DEFAULT_THRESHOLD = 1;
 
 const defaultProps = {
-  // grid
+  // grid aggregation
   cellSize: {type: 'number', min: 0, max: 1000, value: 1000},
   getPosition: x => x.position,
+  // TODO: support aggregation by weights
 
-  // contour
-  widthScale: 1,
+  // contour lines
+  contours: [{threshold: DEFAULT_THRESHOLD, color: DEFAULT_COLOR}],
+  getStrokeWidth: 1,
+
   fp64: false,
-  getThreshold: object => object.threshold,
-  getColor: object => object.color || DEFAULT_COLOR,
-  getWidth: object => object.width || 1
-  // _TODO_ : specify any other PathLayer related props here
 };
 
 export default class ContourLayer extends CompositeLayer {
@@ -58,40 +55,35 @@ export default class ContourLayer extends CompositeLayer {
     };
   }
 
+  updateState({oldProps, props, changeFlags}) {
+    let contoursDirty = false;
+    if (changeFlags.dataChanged || oldProps.cellSize !== props.cellSize) {
+      contoursDirty = true;
+      this.aggregateData();
+    }
+
+    contoursDirty = contoursDirty || this.rebuildContours({oldProps, props});
+    if (contoursDirty) {
+      this.generateContours();
+    }
+  }
+
   getSubLayerClass() {
     return LineLayer;
   }
 
   getSubLayerProps() {
+    const {getStrokeWidth, fp64} = this.props;
+
     return super.getSubLayerProps({
       id: 'contour-line-layer',
       data: this.state.contourData,
-      opacity: 0.6,
+      fp64,
       getSourcePosition: d => d.start,
       getTargetPosition: d => d.end,
-      getColor: d =>
-        THRESHOLDS.indexOf(d.threshold) < COLORS.length
-          ? COLORS[THRESHOLDS.indexOf(d.threshold)]
-          : DEFAULT_COLOR,
-      pickable: true,
-      // widthMinPixels: 1,
-      // pickable: true
-      strokeWidth: 5
+      getColor: this.onGetSublayerColor.bind(this),
+      getStrokeWidth
     });
-  }
-
-  updateState({oldProps, props, changeFlags}) {
-    const cellSizeChanged = oldProps.cellSize !== props.cellSize;
-    let contoursChanged = false;
-    if (changeFlags.dataChanged || cellSizeChanged) {
-      this._aggregateData();
-      contoursChanged = true;
-    }
-    // _TODO_ add trigger for threshold and thresholdColor and set it only when they are changed.
-    contoursChanged = true;
-    if (contoursChanged) {
-      this._generateContours();
-    }
   }
 
   renderLayers() {
@@ -101,30 +93,31 @@ export default class ContourLayer extends CompositeLayer {
   }
 
   // Private
-  _aggregateData() {
-    const {data, cellSize, getPosition, gpuAggregation} = this.props;
+  aggregateData() {
+    const {data, cellSize, getPosition, gpuAggregation, fp64} = this.props;
     const {countsBuffer, maxCountBuffer, gridSize, gridOrigin, gridOffset} = pointToDensityGridData(
       {
         data,
         cellSizeMeters: cellSize,
         getPosition,
         gpuAggregation,
-        gpuGridAggregator: this.state.gridAggregator
-        //        fp64: true
+        gpuGridAggregator: this.state.gridAggregator,
+        fp64
       }
     );
 
     this.setState({countsBuffer, maxCountBuffer, gridSize, gridOrigin, gridOffset});
   }
 
-  _generateContours() {
+  generateContours() {
     const {countsBuffer, gridSize, gridOrigin, gridOffset} = this.state;
     const cellWeights = countsBuffer.getData().filter((value, index) => {
       // filter every 4th element (count of the cell)
       return index % 4 === 0;
     });
+    const thresholds = this.props.contours.map(x => x.threshold);
     const contourData = generateContours({
-      thresholds: THRESHOLDS,
+      thresholds,
       cellWeights,
       gridSize,
       gridOrigin,
@@ -132,6 +125,27 @@ export default class ContourLayer extends CompositeLayer {
     });
 
     this.setState({contourData});
+  }
+
+  onGetSublayerColor(segment) {
+    const {contours} = this.props;
+    let color = DEFAULT_COLOR;
+    contours.forEach(data => {
+      if (data.threshold === segment.threshold) {
+        color = data.color;
+      }
+    });
+    return color;
+  }
+
+  rebuildContours({oldProps, props}) {
+    if (oldProps.contours.length !== props.contours.length) {
+      return true;
+    }
+    const oldThresholds = oldProps.contours.map(x => x.threshold);
+    const thresholds = props.contours.map(x => x.threshold);
+
+    return thresholds.some((_, i) => thresholds[i] !== oldThresholds[i]);
   }
 }
 
