@@ -73,6 +73,39 @@ function getCode(params) {
   return code;
 }
 
+// function getVertices(params) {
+//   const {
+//     gridOrigin,
+//     cellIndex,
+//     cellSize,
+//     gridSize,
+//     code
+//   } = params;
+//
+//   const vertices = [];
+//   const offsets = CODE_OFFSET_MAP[code];
+//   // Reference vertex is top-right its co-ordinates are stored at index 0(X) and 1(Y)
+//   const row = Math.floor(cellIndex / gridSize[0]);
+//   const col = cellIndex - (row * gridSize[0]);
+//
+//   // Move to top-right corner
+//   const rX = (col + 1) * cellSize[0];
+//   const rY = (row + 1) * cellSize[1];
+//
+//   const refVertexX = gridOrigin[0] + rX;
+//   const refVertexY = gridOrigin[1] + rY;
+//
+//
+//   offsets.forEach((xyOffsets) => {
+//     xyOffsets.forEach((offset) => {
+//       vertices.push(refVertexX + offset[0] * cellSize[0]);
+//       vertices.push(refVertexY + offset[1] * cellSize[1]);
+//     });
+//   });
+//
+//   return vertices;
+// }
+
 function getVertices(params) {
   const {
     gridOrigin,
@@ -82,7 +115,7 @@ function getVertices(params) {
     code
   } = params;
 
-  const vertices = [];
+  const segments = [];
   const offsets = CODE_OFFSET_MAP[code];
   // Reference vertex is top-right its co-ordinates are stored at index 0(X) and 1(Y)
   const row = Math.floor(cellIndex / gridSize[0]);
@@ -98,12 +131,13 @@ function getVertices(params) {
 
   offsets.forEach((xyOffsets) => {
     xyOffsets.forEach((offset) => {
-      vertices.push(refVertexX + offset[0] * cellSize[0]);
-      vertices.push(refVertexY + offset[1] * cellSize[1]);
+      const x = refVertexX + offset[0] * cellSize[0];
+      const y = refVertexY + offset[1] * cellSize[1];
+      segments.push([x, y]);
     });
   });
 
-  return vertices;
+  return segments;
 }
 
 export default MarchingSquares;

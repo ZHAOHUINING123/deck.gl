@@ -1,5 +1,5 @@
 import MarchingSquares from './marching-squares';
-
+import assert from 'assert';
 
 export function generateContours({
   thresholds,
@@ -10,7 +10,7 @@ export function generateContours({
   cellSize
 }) {
 
-  const contourVertices = [];
+  const contourSegments = [];
 
   const gridWeights = countsBuffer.getData().filter((value, index) => {
     // filter every 4th element (count of the grid)
@@ -28,23 +28,25 @@ export function generateContours({
           cellIndex,
           gridSize
         });
-
         const vertices = MarchingSquares.getVertices({
-          gridOrigin: [0, 0], // gridVertices,
+          gridOrigin: [gridOrigin[0] - 180, gridOrigin[1] - 90], // gridVertices,
           cellIndex,
           cellSize,
           gridSize,
           code
         });
-
-        contourVertices.push(vertices);
+        // We should always get even number of vertices
+        assert(vertices.length % 2 === 0);
+        for (let i=0; i< vertices.length; i+=2) {
+          contourSegments.push({
+            start: vertices[i],
+            end: vertices[i+1],
+            threshold
+          });
+        }
       }
     }
   });
-
-  return [
-    {
-      path: contourVertices
-    }
-  ];
+  // format: [ {start: , end: threshold: }, {start: , end: threshold: }, ...]
+  return contourSegments;
 }

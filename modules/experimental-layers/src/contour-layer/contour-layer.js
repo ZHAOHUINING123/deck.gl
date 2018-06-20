@@ -19,14 +19,17 @@
 // THE SOFTWARE.
 
 import {CompositeLayer} from '@deck.gl/core';
-import {PathLayer} from '@deck.gl/layers';
+import {LineLayer} from '@deck.gl/layers';
 import GPUGridAggregator from '@deck.gl/experimental-layers/utils/gpu-grid-aggregator';
 
 // _TODO_ : move out of grid-layer as common grid-aggregation util method.
 import {pointToDensityGridData} from '../gpu-grid-layer/gpu-grid-utils';
 import {generateContours} from './contour-utils';
 
-const DEFAULT_COLOR = [0, 0, 0, 255];
+const DEFAULT_COLOR = [255, 0, 255];
+
+const THRESHOLDS = [0.999, 10, 20];
+const COLORS = [ [255, 0, 0], [0, 255, 0], [0, 0, 255]];
 
 const defaultProps = {
   // grid
@@ -56,19 +59,22 @@ export default class ContourLayer extends CompositeLayer {
   }
 
   getSubLayerClass() {
-    return PathLayer;
+    return LineLayer;
   }
 
   getSubLayerProps() {
     return super.getSubLayerProps({
-      id: 'contour-path-layer',
+      id: 'contour-line-layer',
       data: this.state.contourData,
       opacity: 0.6,
-      getPath: f => f.path,
-      getColor: f => [128, 0, 0],
-      getWidth: f => 10
+      getSourcePosition: d => d.start,
+      getTargetPosition: d => d.end,
+      // getColor: d => (d.threshold > 50 ? (d.threshold > 100 ? [255, 0, 0] : [0, 0, 255]) : [0, 255, 0]),
+      getColor: d => (THRESHOLDS.indexOf(d.threshold) < COLORS.length ? COLORS[THRESHOLDS.indexOf(d.threshold)] : DEFAULT_COLOR),
+      pickable: true,
       // widthMinPixels: 1,
       // pickable: true
+      strokeWidth: 5
     });
   }
 
@@ -79,7 +85,7 @@ export default class ContourLayer extends CompositeLayer {
       this._aggregateData();
       generateContours = true;
     }
-    // _TODO_ add trigger for threshold and thresholdColor and set it only when the are changed.
+    // _TODO_ add trigger for threshold and thresholdColor and set it only when they are changed.
     generateContours = true;
     if (generateContours) {
       this._generateContours();
@@ -102,6 +108,7 @@ export default class ContourLayer extends CompositeLayer {
         getPosition,
         gpuAggregation,
         gpuGridAggregator: this.state.gridAggregator
+//        fp64: true
       }
     );
 
@@ -121,8 +128,7 @@ export default class ContourLayer extends CompositeLayer {
     // ];
     const {countsBuffer, gridSize, gridOrigin, gridOffset} = this.state;
     const contourData = generateContours({
-      thresholds: [10],
-      colors: [[255, 0, 0]],
+      thresholds: THRESHOLDS,
       countsBuffer,
       gridSize,
       gridOrigin,
