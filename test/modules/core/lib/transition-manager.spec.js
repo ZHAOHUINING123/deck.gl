@@ -155,7 +155,7 @@ test('TransitionManager#callbacks', t => {
       );
       endCount++;
     },
-    onViewportChange: newViewport => {
+    onViewStateChange: ({newViewport}) => {
       t.ok(!transitionInterpolator.arePropsEqual(viewport, newViewport), 'viewport has changed');
       viewport = newViewport;
       // update props in transition, should not trigger interruption
@@ -177,7 +177,7 @@ test('TransitionManager#callbacks', t => {
     t.is(startCount, 2, 'onTransitionStart() called twice');
     t.is(interruptCount, 1, 'onTransitionInterrupt() called once');
     t.is(endCount, 1, 'onTransitionEnd() called once');
-    t.ok(updateCount > 2, 'onViewportChange() called');
+    t.ok(updateCount > 2, 'onViewStateChange() called');
     t.end();
   }, 1000);
 });

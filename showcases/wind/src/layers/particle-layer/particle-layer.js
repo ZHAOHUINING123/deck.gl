@@ -8,9 +8,8 @@ import {
   setParameters,
   loadTextures,
   Texture2D,
-  experimental
+  _Transform as Transform
 } from 'luma.gl';
-const {Transform} = experimental;
 
 import {ELEVATION_DATA_IMAGE, ELEVATION_DATA_BOUNDS, ELEVATION_RANGE} from '../../defaults';
 
