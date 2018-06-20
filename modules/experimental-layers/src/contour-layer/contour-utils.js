@@ -4,24 +4,19 @@ import assert from 'assert';
 export function generateContours({
   thresholds,
   colors,
-  countsBuffer,
+  cellWeights,
   gridSize,
   gridOrigin,
   cellSize
 }) {
   const contourSegments = [];
 
-  const gridWeights = countsBuffer.getData().filter((value, index) => {
-    // filter every 4th element (count of the grid)
-    return index % 4 === 0;
-  });
-
   thresholds.forEach((threshold, index) => {
     const numCols = gridSize[0];
     for (let cellIndex = 0; cellIndex < gridSize[0] * (gridSize[1] - 1); cellIndex++) {
       if (cellIndex === 0 || (cellIndex + 1) % numCols !== 0) {
         const code = MarchingSquares.getCode({
-          gridWeights,
+          cellWeights,
           thresholdValue: threshold,
           cellIndex,
           gridSize

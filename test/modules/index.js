@@ -18,9 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import './imports-spec';
-import './core';
-import './core-layers';
+// import './imports-spec';
+// import './core';
+// import './core-layers';
 
 // TODO - React test cases currently only work in browser
 // import './react';
@@ -29,5 +29,5 @@ import './core-layers';
 // TODO - Tests currently only work in browser
 if (typeof document !== 'undefined') {
   require('./experimental-layers');
-  require('./lite');
+  // require('./lite');
 }

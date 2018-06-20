@@ -28,7 +28,7 @@ import {generateContours} from './contour-utils';
 
 const DEFAULT_COLOR = [255, 0, 255];
 
-const THRESHOLDS = [0.999, 10, 20];
+const THRESHOLDS = [1, 10, 20];
 const COLORS = [[255, 0, 0], [0, 255, 0], [0, 0, 255]];
 
 const defaultProps = {
@@ -69,7 +69,6 @@ export default class ContourLayer extends CompositeLayer {
       opacity: 0.6,
       getSourcePosition: d => d.start,
       getTargetPosition: d => d.end,
-      // getColor: d => (d.threshold > 50 ? (d.threshold > 100 ? [255, 0, 0] : [0, 0, 255]) : [0, 255, 0]),
       getColor: d =>
         THRESHOLDS.indexOf(d.threshold) < COLORS.length
           ? COLORS[THRESHOLDS.indexOf(d.threshold)]
@@ -119,20 +118,14 @@ export default class ContourLayer extends CompositeLayer {
   }
 
   _generateContours() {
-    // Dummy contour data, replace with actual
-    // const positionOrigin = [-122.42694203247012, 37.751537058389985];
-    // const contourData = [
-    //   {
-    //     path: [
-    //       [positionOrigin[0] - 0.005, positionOrigin[1] + 0.005],
-    //       [positionOrigin[0] - 0.005, positionOrigin[1] - 0.005]
-    //     ]
-    //   }
-    // ];
     const {countsBuffer, gridSize, gridOrigin, gridOffset} = this.state;
+    const cellWeights = countsBuffer.getData().filter((value, index) => {
+      // filter every 4th element (count of the cell)
+      return index % 4 === 0;
+    });
     const contourData = generateContours({
       thresholds: THRESHOLDS,
-      countsBuffer,
+      cellWeights,
       gridSize,
       gridOrigin,
       cellSize: gridOffset
