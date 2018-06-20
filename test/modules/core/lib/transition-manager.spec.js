@@ -155,7 +155,8 @@ test('TransitionManager#callbacks', t => {
       );
       endCount++;
     },
-    onViewStateChange: ({newViewport}) => {
+    onViewStateChange: ({viewState}) => {
+      const newViewport = viewState;
       t.ok(!transitionInterpolator.arePropsEqual(viewport, newViewport), 'viewport has changed');
       viewport = newViewport;
       // update props in transition, should not trigger interruption

@@ -1,8 +1,10 @@
-import {GL, Buffer, _Transform as Transform} from 'luma.gl';
+import {GL, Buffer, experimental} from 'luma.gl';
 import {getShaders, getBuffers, padBuffer} from './attribute-transition-utils';
 import Transition from '../transitions/transition';
 import log from '../utils/log';
 import assert from '../utils/assert';
+
+const {Transform} = experimental;
 
 const noop = () => {};
 
