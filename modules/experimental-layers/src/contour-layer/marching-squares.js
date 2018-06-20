@@ -44,12 +44,7 @@ function getCode(params) {
   // When processing one cell, we process 4 cell, by extending row to top and on col to right
   // to create a 2X2 cell grid
 
-  const {
-    gridWeights,
-    thresholdValue,
-    cellIndex,
-    gridSize
-  } = params;
+  const {gridWeights, thresholdValue, cellIndex, gridSize} = params;
 
   const numRows = gridSize[1];
   const numCols = gridSize[0];
@@ -58,12 +53,12 @@ function getCode(params) {
   assert((cellIndex + 1) % numCols);
 
   // We shouldn't process the topmost row
-  assert((cellIndex + 1) < ((numRows - 1) * numCols));
+  assert(cellIndex + 1 < (numRows - 1) * numCols);
 
-  const top = (gridWeights[cellIndex + numCols] - thresholdValue) > 0 ? 1 : 0;
-  const topRight = (gridWeights[cellIndex + numCols + 1] - thresholdValue) > 0 ? 1 : 0;
-  const right = (gridWeights[cellIndex + 1] - thresholdValue) > 0 ? 1 : 0;
-  const current = (gridWeights[cellIndex] - thresholdValue) > 0 ? 1 : 0;
+  const top = gridWeights[cellIndex + numCols] - thresholdValue > 0 ? 1 : 0;
+  const topRight = gridWeights[cellIndex + numCols + 1] - thresholdValue > 0 ? 1 : 0;
+  const right = gridWeights[cellIndex + 1] - thresholdValue > 0 ? 1 : 0;
+  const current = gridWeights[cellIndex] - thresholdValue > 0 ? 1 : 0;
 
   // console.log(`top: ${top} topright: ${topRight} right: ${right} current: ${current}`);
   const code = (top << 3) | (topRight << 2) | (right << 1) | current;
@@ -107,19 +102,13 @@ function getCode(params) {
 // }
 
 function getVertices(params) {
-  const {
-    gridOrigin,
-    cellIndex,
-    cellSize,
-    gridSize,
-    code
-  } = params;
+  const {gridOrigin, cellIndex, cellSize, gridSize, code} = params;
 
   const segments = [];
   const offsets = CODE_OFFSET_MAP[code];
   // Reference vertex is top-right its co-ordinates are stored at index 0(X) and 1(Y)
   const row = Math.floor(cellIndex / gridSize[0]);
-  const col = cellIndex - (row * gridSize[0]);
+  const col = cellIndex - row * gridSize[0];
 
   // Move to top-right corner
   const rX = (col + 1) * cellSize[0];
@@ -128,9 +117,8 @@ function getVertices(params) {
   const refVertexX = gridOrigin[0] + rX;
   const refVertexY = gridOrigin[1] + rY;
 
-
-  offsets.forEach((xyOffsets) => {
-    xyOffsets.forEach((offset) => {
+  offsets.forEach(xyOffsets => {
+    xyOffsets.forEach(offset => {
       const x = refVertexX + offset[0] * cellSize[0];
       const y = refVertexY + offset[1] * cellSize[1];
       segments.push([x, y]);

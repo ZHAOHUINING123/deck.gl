@@ -29,7 +29,7 @@ import {generateContours} from './contour-utils';
 const DEFAULT_COLOR = [255, 0, 255];
 
 const THRESHOLDS = [0.999, 10, 20];
-const COLORS = [ [255, 0, 0], [0, 255, 0], [0, 0, 255]];
+const COLORS = [[255, 0, 0], [0, 255, 0], [0, 0, 255]];
 
 const defaultProps = {
   // grid
@@ -70,7 +70,10 @@ export default class ContourLayer extends CompositeLayer {
       getSourcePosition: d => d.start,
       getTargetPosition: d => d.end,
       // getColor: d => (d.threshold > 50 ? (d.threshold > 100 ? [255, 0, 0] : [0, 0, 255]) : [0, 255, 0]),
-      getColor: d => (THRESHOLDS.indexOf(d.threshold) < COLORS.length ? COLORS[THRESHOLDS.indexOf(d.threshold)] : DEFAULT_COLOR),
+      getColor: d =>
+        THRESHOLDS.indexOf(d.threshold) < COLORS.length
+          ? COLORS[THRESHOLDS.indexOf(d.threshold)]
+          : DEFAULT_COLOR,
       pickable: true,
       // widthMinPixels: 1,
       // pickable: true
@@ -79,15 +82,15 @@ export default class ContourLayer extends CompositeLayer {
   }
 
   updateState({oldProps, props, changeFlags}) {
-    const aggregateData = oldProps.cellSize !== props.cellSize;
-    let generateContours = false;
-    if (changeFlags.dataChanged || aggregateData) {
+    const cellSizeChanged = oldProps.cellSize !== props.cellSize;
+    let contoursChanged = false;
+    if (changeFlags.dataChanged || cellSizeChanged) {
       this._aggregateData();
-      generateContours = true;
+      contoursChanged = true;
     }
     // _TODO_ add trigger for threshold and thresholdColor and set it only when they are changed.
-    generateContours = true;
-    if (generateContours) {
+    contoursChanged = true;
+    if (contoursChanged) {
       this._generateContours();
     }
   }
@@ -108,7 +111,7 @@ export default class ContourLayer extends CompositeLayer {
         getPosition,
         gpuAggregation,
         gpuGridAggregator: this.state.gridAggregator
-//        fp64: true
+        //        fp64: true
       }
     );
 
