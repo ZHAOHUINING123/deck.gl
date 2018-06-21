@@ -40,6 +40,5 @@ export function generateContours({
       }
     }
   });
-  // format: [ {start: , end: threshold: }, {start: , end: threshold: }, ...]
   return contourSegments;
 }

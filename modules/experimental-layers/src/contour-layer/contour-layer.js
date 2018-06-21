@@ -22,7 +22,7 @@ import {CompositeLayer} from '@deck.gl/core';
 import {LineLayer} from '@deck.gl/layers';
 import GPUGridAggregator from '@deck.gl/experimental-layers/utils/gpu-grid-aggregator';
 
-// _TODO_ : move out of grid-layer as common grid-aggregation util method.
+// TODO: move out of grid-layer as common grid-aggregation util method.
 import {pointToDensityGridData} from '../gpu-grid-layer/gpu-grid-utils';
 import {generateContours} from './contour-utils';
 
